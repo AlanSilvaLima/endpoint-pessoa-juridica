@@ -1,8 +1,10 @@
 package com.pessoa_juridica.cadastro.service;
 
 
+import com.pessoa_juridica.cadastro.dto.PessoaJuridicaRequestDTO;
 import com.pessoa_juridica.cadastro.model.PessoaJuridica;
 import com.pessoa_juridica.cadastro.repository.PessoaJuridicaRepository;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -13,7 +15,20 @@ public class PessoaJuridicaService {
         this.repository = repository;
     }
 
-    public PessoaJuridica salvar(PessoaJuridica pj) {
-        return (PessoaJuridica)this.repository.save(pj);
+    public PessoaJuridica salvar(PessoaJuridicaRequestDTO dto) {
+        if (repository.findByCnpj(dto.getCnpj()).isPresent()) {
+            throw new DataIntegrityViolationException("CNPJ já cadastrado.");
+        }
+
+        if (repository.findByCpfResponsavel(dto.getCpfResponsavel()).isPresent()) {
+            throw new DataIntegrityViolationException("CPF do responsável já cadastrado.");
+        }
+
+        if (repository.findByEmail(dto.getEmail()).isPresent()) {
+            throw new DataIntegrityViolationException("E-mail já cadastrado.");
+        }
+
+        PessoaJuridica pj = dto.toEntity();
+        return repository.save(pj);
     }
 }
